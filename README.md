@@ -32,7 +32,7 @@
     $db = new PDO($dsn, DB_USER, DB_PASSWORD);
 ?> // Ej nödvändigt att avslut "ren" php med ?>
 ````
-### .env
+##### .env
     Byt namn på filen ".env-rename" till ".env". 
     Skriv in önskat portnummret till appen.
     För MariaDB, lösenord och användarnamn till databasen.
