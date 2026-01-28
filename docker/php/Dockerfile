@@ -1,33 +1,41 @@
-FROM php:fpm
+FROM php:8.5-fpm-alpine3.21
 
-RUN apt --allow-releaseinfo-change update && apt-get upgrade -y \
-    && apt install -y \
-    g++ \
-    libbz2-dev \
-    libc-client-dev \
-    libcurl4-gnutls-dev \
-    libedit-dev \
-    libfreetype6-dev \
-    libicu-dev \
-    libjpeg62-turbo-dev \
-    libkrb5-dev \
-    libmcrypt-dev \
+WORKDIR /var/www
+
+RUN apk add --no-cache \
+    icu-libs \
+    freetype \
+    libjpeg-turbo \
+    libpng \
+    libzip \
+    oniguruma\
+&& apk add --no-cache --virtual .build-deps \
+    $PHPIZE_DEPS \
+    icu-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
     libpng-dev \
-    libsqlite3-dev \
     libzip-dev \
-    wget \
-    unzip \
-    zlib1g-dev \
-    && docker-php-ext-install -j$(nproc) \
-    mysqli \
+    linux-headers \
+    oniguruma-dev \
+&& docker-php-ext-configure gd --with-freetype --with-jpeg \
+&& docker-php-ext-install -j$(nproc) \
     pdo_mysql \
+    gd \
+    intl \
+    zip \
     sockets \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd \
-    && docker-php-ext-configure zip \
-    && docker-php-ext-install zip \
-    && docker-php-source delete \
-    && apt-get remove -y g++ wget \
-    && apt-get autoremove --purge -y && apt-get autoclean -y && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /tmp/* /var/tmp/*
+    mbstring \
+&& apk del .build-deps \
+&& rm -rf /var/cache/apk/* /tmp/*
+
+ARG UID=1000
+ARG GID=1000
+
+RUN addgroup -g ${GID} -S www \
+ && adduser -u ${UID} -S -D -G www www
+
+COPY --chown=www:www . /var/www
+
+USER www
+
