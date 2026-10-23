@@ -44,7 +44,7 @@ services:
       - app-network
 
   pma:
-    image: phpmyadmin/phpmyadmin:latest
+    image: phpmyadmin:latest
     container_name: pma
     restart: unless-stopped
     volumes:

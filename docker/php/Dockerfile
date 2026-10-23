@@ -1,41 +1,45 @@
-FROM php:8.5-fpm-alpine3.23
+FROM php:8.5.12-fpm
 
 WORKDIR /var/www
 
-RUN apk add --no-cache \
-    icu-libs \
-    freetype \
-    libjpeg-turbo \
-    libpng \
-    libzip \
-    oniguruma\
-&& apk add --no-cache --virtual .build-deps \
-    $PHPIZE_DEPS \
-    icu-dev \
-    freetype-dev \
-    libjpeg-turbo-dev \
+# Installera byggverktyg och systembibliotek
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
+    g++ \
+    make \
+    pkg-config \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
     libpng-dev \
     libzip-dev \
-    linux-headers \
-    oniguruma-dev \
-&& docker-php-ext-configure gd --with-freetype --with-jpeg \
-&& docker-php-ext-install -j$(nproc) \
-    pdo_mysql \
-    gd \
-    intl \
+    libicu-dev \
     zip \
+    unzip \
+    zlib1g-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install -j$(nproc) \
+    mysqli \
+    pdo_mysql \
     sockets \
-    mbstring \
-&& apk del .build-deps \
-&& rm -rf /var/cache/apk/* /tmp/*
+    gd \
+    zip \
+    intl \
+    opcache \
+    bcmath \
+    exif \
+    && docker-php-source delete \
+    && apt-get purge -y --auto-remove g++ make pkg-config \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ARG UID=1000
 ARG GID=1000
 
-RUN addgroup -g ${GID} -S www \
- && adduser -u ${UID} -S -D -G www www
+# Skapa användare och grupp för Debian
+RUN groupadd -g ${GID} www \
+ && useradd -u ${UID} -ms /bin/bash -g www www
 
 COPY --chown=www:www . /var/www
 
 USER www
-
