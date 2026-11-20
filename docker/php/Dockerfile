@@ -3,8 +3,7 @@ FROM php:8.5.12-fpm
 WORKDIR /var/www
 
 # Installera byggverktyg och systembibliotek
-RUN apt-get update && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     make \
     pkg-config \
@@ -18,14 +17,13 @@ RUN apt-get update && apt-get upgrade -y \
     zlib1g-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-configure intl \
-    && docker-php-ext-install -j$(nproc) \
+    && docker-php-ext-install \
     mysqli \
     pdo_mysql \
     sockets \
     gd \
     zip \
     intl \
-    opcache \
     bcmath \
     exif \
     && docker-php-source delete \
